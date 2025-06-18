@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Bottom Navigation Active Indicator -->
+    <style name="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/green</item>
+        <item name="android:alpha">0.12</item>
+    </style>
+    <style name="CustomBottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemBackground">@color/bottom_bg_selector</item>
+        <item name="itemIconTint">@color/bottom_nav_selector</item>
+        <item name="itemTextColor">@color/bottom_nav_selector</item>
+        <item name="android:backgroundTint">@color/green</item>
+    </style>
+    <style name="App.Custom.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <!-- Warna latar indicator -->
+        <item name="android:color">@color/white_checked</item>
+
+        <!-- Ukuran indicator -->
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+
+        <!-- Bentuk indicator (opsional) -->
+        <item name="shapeAppearance">@style/ShapeAppearance.App.SmallComponent</item>
+    </style>
+
+    <!-- Bentuk indicator dengan sudut melengkung -->
+    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+</resources>

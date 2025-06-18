@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/homeFragment"
+        android:icon="@drawable/home"
+        android:title="Home" />
+    <!-- ✅ CHANGE: Use historyFragment ID instead of nav_history -->
+    <item
+        android:id="@+id/historyFragment"
+        android:icon="@drawable/first_aid"
+        android:title="Add Obat" />
+
+    <item
+        android:id="@+id/profileFragment"
+        android:icon="@drawable/user"
+        android:title="Profile" />
+</menu>
