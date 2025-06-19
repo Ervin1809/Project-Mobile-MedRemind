@@ -28,7 +28,7 @@ public class ObatHelper {
         dbHelper.close();
     }
 
-    public long tambahObat(Obat obat) {
+    public long insertObat(Obat obat) {
         ContentValues values = new ContentValues();
         values.put(DbHelper.KEY_NAMA_OBAT, obat.getNamaObat());
         values.put(DbHelper.KEY_JENIS_OBAT, obat.getJenisObat());
