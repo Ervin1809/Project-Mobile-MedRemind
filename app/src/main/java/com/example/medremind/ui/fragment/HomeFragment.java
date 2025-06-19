@@ -1,4 +1,4 @@
-package com.example.medremind.fragment;
+package com.example.medremind.ui.fragment;
 
 import android.os.Bundle;
 
