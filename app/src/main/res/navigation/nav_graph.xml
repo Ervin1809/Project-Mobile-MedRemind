@@ -8,18 +8,37 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.medremind.ui.fragment.HomeFragment"
-        android:label="fragment_home"
+        android:label="Beranda"
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/historyFragment"
+        android:id="@+id/addObatFragment"
         android:name="com.example.medremind.ui.fragment.AddObatFragment"
-        android:label="fragment_history"
-        tools:layout="@layout/fragment_add_obat" />
+        android:label="Tambah Obat"
+        tools:layout="@layout/fragment_add_obat">
+        <action
+            android:id="@+id/action_addObatFragment_to_inputJadwalHarianFragment"
+            app:destination="@id/inputJadwalHarianFragment" />
+        <action
+            android:id="@+id/action_addObatFragment_to_inputJadwalMingguanFragment"
+            app:destination="@id/inputJadwalMingguanFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inputJadwalHarianFragment"
+        android:name="com.example.medremind.ui.fragment.InputJadwalHarianFragment"
+        android:label="Jadwal Harian"
+        tools:layout="@layout/fragment_input_jadwal_harian" />
+
+    <fragment
+        android:id="@+id/inputJadwalMingguanFragment"
+        android:name="com.example.medremind.ui.fragment.InputJadwalMingguanFragment"
+        android:label="Jadwal Mingguan"
+        tools:layout="@layout/fragment_input_jadwal_mingguan" />
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.medremind.ui.fragment.ProfileFragment"
-        android:label="fragment_profile"
+        android:label="Profil"
         tools:layout="@layout/fragment_profile" />
 </navigation>

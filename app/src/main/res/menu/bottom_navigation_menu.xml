@@ -6,7 +6,7 @@
         android:title="Home" />
     <!-- ✅ CHANGE: Use historyFragment ID instead of nav_history -->
     <item
-        android:id="@+id/historyFragment"
+        android:id="@+id/addObatFragment"
         android:icon="@drawable/first_aid"
         android:title="Add Obat" />
 
