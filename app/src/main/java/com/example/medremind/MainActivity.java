@@ -1,15 +1,18 @@
 package com.example.medremind;
 
-import static java.lang.Thread.sleep;
-
-import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,5 +27,16 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        // PERBAIKAN: Cara yang benar untuk mendapatkan NavController
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+
+        if (navHostFragment != null) {
+            NavController navController = navHostFragment.getNavController();
+            BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+            NavigationUI.setupWithNavController(bottomNavigation, navController);
+        } else {
+            Log.e("MainActivity", "NavHostFragment tidak ditemukan!");
+        }
     }
 }
