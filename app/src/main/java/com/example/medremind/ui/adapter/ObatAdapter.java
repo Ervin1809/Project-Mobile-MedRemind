@@ -12,12 +12,15 @@ import com.example.medremind.R;
 import com.example.medremind.data.model.Obat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ObatAdapter extends RecyclerView.Adapter<ObatAdapter.ObatViewHolder> {
 
     private List<Obat> obatList;
     private ObatClickListener listener;
+    private Map<Integer, Integer> jumlahMakanMap = new HashMap<>();
 
     public interface ObatClickListener {
         void onObatClick(Obat obat);
@@ -33,7 +36,12 @@ public class ObatAdapter extends RecyclerView.Adapter<ObatAdapter.ObatViewHolder
     }
 
     public void setObatList(List<Obat> obatList) {
-        this.obatList = obatList;
+        this.obatList = obatList != null ? obatList : new ArrayList<>();
+        notifyDataSetChanged();
+    }
+
+    public void setJumlahMakanMap(Map<Integer, Integer> jumlahMakanMap) {
+        this.jumlahMakanMap = jumlahMakanMap != null ? jumlahMakanMap : new HashMap<>();
         notifyDataSetChanged();
     }
 
@@ -95,22 +103,25 @@ public class ObatAdapter extends RecyclerView.Adapter<ObatAdapter.ObatViewHolder
             tvNamaObat.setText(obat.getNamaObat());
             tvDosisObat.setText(obat.getDosisObat());
 
-            // Set tipe jadwal dan jumlah makan
+            // Set tipe jadwal
             String tipeJadwal = obat.getTipeJadwal();
             if (tipeJadwal != null) {
-                if (tipeJadwal.equalsIgnoreCase("daily")) {
+                if (tipeJadwal.equalsIgnoreCase("harian") || tipeJadwal.equalsIgnoreCase("daily")) {
                     tvTipeJadwal.setText("Sehari");
-                    tvJumlahMakan.setText("3 x"); // Asumsi 3x sehari
                 } else {
                     tvTipeJadwal.setText("Seminggu");
-                    tvJumlahMakan.setText("1 x"); // Asumsi 1x seminggu
                 }
             }
 
-            // Set daily progress
-            // Ini adalah contoh statis, Anda perlu mengimplementasikan logika sebenarnya
-            // untuk menghitung progress berdasarkan jadwal
-            tvDailyProgress.setText("1/3");
+            // Set jumlah makan dari map
+            int jumlahMakan = 0;
+            if (jumlahMakanMap != null && jumlahMakanMap.containsKey(obat.getId())) {
+                jumlahMakan = jumlahMakanMap.get(obat.getId());
+            }
+            tvJumlahMakan.setText(jumlahMakan + " x");
+
+            // Set daily progress (akan dibahas nanti)
+            tvDailyProgress.setText("-");
         }
     }
 }

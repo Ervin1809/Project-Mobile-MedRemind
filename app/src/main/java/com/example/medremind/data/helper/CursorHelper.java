@@ -1,99 +1,192 @@
 package com.example.medremind.data.helper;
 
 import android.database.Cursor;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.example.medremind.data.model.Jadwal;
 import com.example.medremind.data.model.Obat;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class CursorHelper {
-    public static Obat cursorToObat(Cursor cursor) {
-        if (cursor == null) return null;
+    private static final String TAG = "CursorHelper";
 
-        Obat obat = new Obat();
+    @Nullable
+    public static Obat cursorToObat(@Nullable Cursor cursor) {
+        if (cursor == null || cursor.isClosed()) {
+            Log.w(TAG, "Cursor is null or closed");
+            return null;
+        }
 
-        // Mendapatkan indeks kolom dengan pengecekan
-        int idColIndex = cursor.getColumnIndex(DbHelper.KEY_OBAT_ID);
-        int namaObatColIndex = cursor.getColumnIndex(DbHelper.KEY_NAMA_OBAT);
-        int jenisObatColIndex = cursor.getColumnIndex(DbHelper.KEY_JENIS_OBAT);
-        int dosisObatColIndex = cursor.getColumnIndex(DbHelper.KEY_DOSIS_OBAT);
-        int aturanMinumColIndex = cursor.getColumnIndex(DbHelper.KEY_ATURAN_MINUM);
-        int jumlahObatColIndex = cursor.getColumnIndex(DbHelper.KEY_JUMLAH_OBAT);
-        int tipeJadwalColIndex = cursor.getColumnIndex(DbHelper.KEY_TIPE_JADWAL);
+        try {
+            Obat obat = new Obat();
 
-        // Mengisi objek dengan pengecekan indeks
-        if (idColIndex != -1) obat.setId(cursor.getInt(idColIndex));
-        if (namaObatColIndex != -1) obat.setNamaObat(cursor.getString(namaObatColIndex));
-        if (jenisObatColIndex != -1) obat.setJenisObat(cursor.getString(jenisObatColIndex));
-        if (dosisObatColIndex != -1) obat.setDosisObat(cursor.getString(dosisObatColIndex));
-        if (aturanMinumColIndex != -1) obat.setAturanMinum(cursor.getString(aturanMinumColIndex));
-        if (jumlahObatColIndex != -1) obat.setJumlahObat(cursor.getInt(jumlahObatColIndex));
-        if (tipeJadwalColIndex != -1) obat.setTipeJadwal(cursor.getString(tipeJadwalColIndex));
+            // Mengisi data dengan safe column access
+            obat.setId(getIntValue(cursor, DbHelper.KEY_OBAT_ID, 0));
+            obat.setNamaObat(getStringValue(cursor, DbHelper.KEY_NAMA_OBAT, ""));
+            obat.setJenisObat(getStringValue(cursor, DbHelper.KEY_JENIS_OBAT, ""));
+            obat.setDosisObat(getStringValue(cursor, DbHelper.KEY_DOSIS_OBAT, ""));
+            obat.setAturanMinum(getStringValue(cursor, DbHelper.KEY_ATURAN_MINUM, ""));
+            obat.setJumlahObat(getIntValue(cursor, DbHelper.KEY_JUMLAH_OBAT, 0));
+            obat.setTipeJadwal(getStringValue(cursor, DbHelper.KEY_TIPE_JADWAL, "harian"));
 
-        return obat;
+            // Set timestamp jika ada
+            long tanggalDibuat = getLongValue(cursor, DbHelper.KEY_OBAT_TANGGAL_DIBUAT, 0);
+            if (tanggalDibuat > 0) {
+                obat.setTanggalDibuat(new Date(tanggalDibuat * 1000));
+            }
+
+            long tanggalDiperbarui = getLongValue(cursor, DbHelper.KEY_OBAT_TANGGAL_DIPERBARUI, 0);
+            if (tanggalDiperbarui > 0) {
+                obat.setTanggalDiperbarui(new Date(tanggalDiperbarui * 1000));
+            }
+
+            obat.setAktif(getIntValue(cursor, DbHelper.KEY_OBAT_IS_AKTIF, 1) == 1);
+
+            return obat;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting cursor to Obat: " + e.getMessage(), e);
+            return null;
+        }
     }
 
-
-    public static List<Obat> cursorToObatList(Cursor cursor) {
+    @NonNull
+    public static List<Obat> cursorToObatList(@Nullable Cursor cursor) {
         List<Obat> obatList = new ArrayList<>();
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                obatList.add(cursorToObat(cursor));
-            } while (cursor.moveToNext());
-            cursor.close();
+        if (cursor == null) {
+            Log.w(TAG, "Cursor is null");
+            return obatList;
+        }
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    Obat obat = cursorToObat(cursor);
+                    if (obat != null) {
+                        obatList.add(obat);
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting cursor to Obat list: " + e.getMessage(), e);
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
 
         return obatList;
     }
 
-    public static Jadwal cursorToJadwal(Cursor cursor) {
-        if (cursor == null) return null;
-
-        Jadwal jadwal = new Jadwal();
-
-        // Mendapatkan indeks kolom dengan pengecekan
-        int idColIndex = cursor.getColumnIndex(DbHelper.KEY_JADWAL_ID);
-        int obatIdColIndex = cursor.getColumnIndex(DbHelper.KEY_OBAT_ID_FK);
-        int hariColIndex = cursor.getColumnIndex(DbHelper.KEY_HARI);
-        int waktuColIndex = cursor.getColumnIndex(DbHelper.KEY_WAKTU);
-        int statusColIndex = cursor.getColumnIndex(DbHelper.KEY_STATUS);
-
-        // Mengisi objek dengan pengecekan indeks
-        if (idColIndex != -1) jadwal.setId(cursor.getInt(idColIndex));
-        if (obatIdColIndex != -1) jadwal.setObatId(cursor.getInt(obatIdColIndex));
-        if (hariColIndex != -1) jadwal.setHari(cursor.getString(hariColIndex));
-        if (waktuColIndex != -1) jadwal.setWaktu(cursor.getString(waktuColIndex));
-        if (statusColIndex != -1) jadwal.setStatus(cursor.getInt(statusColIndex));
-
-        // Mencoba mendapatkan informasi obat terkait jika ada
-        try {
-            int namaObatColIndex = cursor.getColumnIndex("nama_obat");
-            int dosisObatColIndex = cursor.getColumnIndex("dosis_obat");
-            int aturanMinumColIndex = cursor.getColumnIndex("aturan_minum");
-
-            if (namaObatColIndex != -1) jadwal.setTambahan("namaObat", cursor.getString(namaObatColIndex));
-            if (dosisObatColIndex != -1) jadwal.setTambahan("dosisObat", cursor.getString(dosisObatColIndex));
-            if (aturanMinumColIndex != -1) jadwal.setTambahan("aturanMinum", cursor.getString(aturanMinumColIndex));
-        } catch (IllegalArgumentException e) {
-            // Jika kolom tidak ditemukan, abaikan saja
+    @Nullable
+    public static Jadwal cursorToJadwal(@Nullable Cursor cursor) {
+        if (cursor == null || cursor.isClosed()) {
+            Log.w(TAG, "Cursor is null or closed");
+            return null;
         }
 
-        return jadwal;
+        try {
+            Jadwal jadwal = new Jadwal();
+
+            // Mengisi data dengan safe column access
+            jadwal.setId(getIntValue(cursor, DbHelper.KEY_JADWAL_ID, 0));
+            jadwal.setObatId(getIntValue(cursor, DbHelper.KEY_OBAT_ID_FK, 0));
+            jadwal.setHari(getStringValue(cursor, DbHelper.KEY_HARI, ""));
+            jadwal.setWaktu(getStringValue(cursor, DbHelper.KEY_WAKTU, ""));
+            jadwal.setStatus(getIntValue(cursor, DbHelper.KEY_STATUS, 0));
+            jadwal.setCatatan(getStringValue(cursor, DbHelper.KEY_JADWAL_CATATAN, null));
+
+            // Set timestamp jika ada
+            long tanggalDibuat = getLongValue(cursor, DbHelper.KEY_JADWAL_TANGGAL_DIBUAT, 0);
+            if (tanggalDibuat > 0) {
+                jadwal.setTanggalDibuat(new Date(tanggalDibuat * 1000));
+            }
+
+            long tanggalDiperbarui = getLongValue(cursor, DbHelper.KEY_JADWAL_TANGGAL_DIPERBARUI, 0);
+            if (tanggalDiperbarui > 0) {
+                jadwal.setTanggalDiperbarui(new Date(tanggalDiperbarui * 1000));
+            }
+
+            long tanggalDiminum = getLongValue(cursor, DbHelper.KEY_JADWAL_TANGGAL_DIMINUM, 0);
+            if (tanggalDiminum > 0) {
+                jadwal.setTanggalDiminum(new Date(tanggalDiminum * 1000));
+            }
+
+            // Mencoba mendapatkan informasi obat terkait jika ada (dari JOIN)
+            String namaObat = getStringValue(cursor, "nama_obat", null);
+            if (namaObat != null) {
+                jadwal.setTambahan("namaObat", namaObat);
+                jadwal.setTambahan("dosisObat", getStringValue(cursor, "dosis_obat", ""));
+                jadwal.setTambahan("aturanMinum", getStringValue(cursor, "aturan_minum", ""));
+                jadwal.setTambahan("jenisObat", getStringValue(cursor, "jenis_obat", ""));
+            }
+
+            return jadwal;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting cursor to Jadwal: " + e.getMessage(), e);
+            return null;
+        }
     }
 
-    public static List<Jadwal> cursorToJadwalList(Cursor cursor) {
+    @NonNull
+    public static List<Jadwal> cursorToJadwalList(@Nullable Cursor cursor) {
         List<Jadwal> jadwalList = new ArrayList<>();
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                jadwalList.add(cursorToJadwal(cursor));
-            } while (cursor.moveToNext());
-            cursor.close();
+        if (cursor == null) {
+            Log.w(TAG, "Cursor is null");
+            return jadwalList;
+        }
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    Jadwal jadwal = cursorToJadwal(cursor);
+                    if (jadwal != null) {
+                        jadwalList.add(jadwal);
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting cursor to Jadwal list: " + e.getMessage(), e);
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
 
         return jadwalList;
+    }
+
+    // Helper methods untuk safe column access
+    private static String getStringValue(@NonNull Cursor cursor, @NonNull String columnName, @Nullable String defaultValue) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+        if (columnIndex != -1 && !cursor.isNull(columnIndex)) {
+            return cursor.getString(columnIndex);
+        }
+        return defaultValue;
+    }
+
+    private static int getIntValue(@NonNull Cursor cursor, @NonNull String columnName, int defaultValue) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+        if (columnIndex != -1 && !cursor.isNull(columnIndex)) {
+            return cursor.getInt(columnIndex);
+        }
+        return defaultValue;
+    }
+
+    private static long getLongValue(@NonNull Cursor cursor, @NonNull String columnName, long defaultValue) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+        if (columnIndex != -1 && !cursor.isNull(columnIndex)) {
+            return cursor.getLong(columnIndex);
+        }
+        return defaultValue;
     }
 }

@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <EditText
+        android:id="@+id/et_jam"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Pilih Jam"
+        android:focusable="false"
+        android:background="@drawable/border_layout_obat"
+        android:padding="16dp"
+        android:textSize="16sp"/>
+
+    <ImageButton
+        android:id="@+id/btn_hapus_jam"
+        android:src="@drawable/ic_delete"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="Hapus"
+        android:layout_marginStart="8dp"/>
+</LinearLayout>

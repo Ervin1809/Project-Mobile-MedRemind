@@ -43,4 +43,5 @@ dependencies {
 
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation ("androidx.gridlayout:gridlayout:1.0.0")
 }
