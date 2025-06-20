@@ -10,7 +10,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     // Database Info
     public static final String DATABASE_NAME = "MediReminderDatabase";
-    public static final int DATABASE_VERSION = 2; // Increment untuk migration
+    public static final int DATABASE_VERSION = 3; // 🔑 INCREMENT untuk daily reset
 
     // Table Names
     public static final String TABLE_OBAT = "obat";
@@ -38,6 +38,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String KEY_JADWAL_TANGGAL_DIPERBARUI = "tanggal_diperbarui";
     public static final String KEY_JADWAL_TANGGAL_DIMINUM = "tanggal_diminum";
     public static final String KEY_JADWAL_CATATAN = "catatan";
+    public static final String KEY_LAST_RESET_DATE = "last_reset_date"; // 🔑 NEW COLUMN
 
     // Table Create Statements dengan constraints yang lebih baik
     private static final String CREATE_TABLE_OBAT = "CREATE TABLE " + TABLE_OBAT + "("
@@ -63,6 +64,7 @@ public class DbHelper extends SQLiteOpenHelper {
             + KEY_JADWAL_TANGGAL_DIPERBARUI + " INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),"
             + KEY_JADWAL_TANGGAL_DIMINUM + " INTEGER,"
             + KEY_JADWAL_CATATAN + " TEXT,"
+            + KEY_LAST_RESET_DATE + " TEXT DEFAULT NULL," // 🔑 NEW COLUMN
             + "FOREIGN KEY(" + KEY_OBAT_ID_FK + ") REFERENCES " + TABLE_OBAT + "(" + KEY_OBAT_ID + ") ON DELETE CASCADE"
             + ")";
 
@@ -75,6 +77,10 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private static final String CREATE_INDEX_JADWAL_STATUS =
             "CREATE INDEX idx_jadwal_status ON " + TABLE_JADWAL + "(" + KEY_STATUS + ")";
+
+    // 🔑 NEW INDEX untuk daily reset
+    private static final String CREATE_INDEX_JADWAL_RESET_DATE =
+            "CREATE INDEX idx_jadwal_reset_date ON " + TABLE_JADWAL + "(" + KEY_LAST_RESET_DATE + ")";
 
     // Triggers untuk auto-update timestamp
     private static final String CREATE_TRIGGER_OBAT_UPDATE =
@@ -109,6 +115,7 @@ public class DbHelper extends SQLiteOpenHelper {
             db.execSQL(CREATE_INDEX_JADWAL_OBAT_ID);
             db.execSQL(CREATE_INDEX_JADWAL_HARI_WAKTU);
             db.execSQL(CREATE_INDEX_JADWAL_STATUS);
+            db.execSQL(CREATE_INDEX_JADWAL_RESET_DATE); // 🔑 NEW INDEX
 
             // Creating triggers
             db.execSQL(CREATE_TRIGGER_OBAT_UPDATE);
@@ -130,6 +137,10 @@ public class DbHelper extends SQLiteOpenHelper {
             if (oldVersion < 2) {
                 // Migration dari versi 1 ke 2
                 migrateFromV1ToV2(db);
+            }
+            if (oldVersion < 3) {
+                // 🔑 Migration dari versi 2 ke 3 (Daily Reset)
+                migrateFromV2ToV3(db);
             }
 
             Log.d(TAG, "Database upgrade completed successfully");
@@ -166,8 +177,25 @@ public class DbHelper extends SQLiteOpenHelper {
             db.execSQL(CREATE_TRIGGER_OBAT_UPDATE);
             db.execSQL(CREATE_TRIGGER_JADWAL_UPDATE);
 
+            Log.d(TAG, "Migration from V1 to V2 completed successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error in migration from V1 to V2: " + e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    // 🔑 NEW MIGRATION METHOD
+    private void migrateFromV2ToV3(SQLiteDatabase db) {
+        try {
+            // Add last_reset_date column for daily reset functionality
+            db.execSQL("ALTER TABLE " + TABLE_JADWAL + " ADD COLUMN " + KEY_LAST_RESET_DATE + " TEXT DEFAULT NULL");
+
+            // Create index for reset date
+            db.execSQL(CREATE_INDEX_JADWAL_RESET_DATE);
+
+            Log.d(TAG, "Migration from V2 to V3 completed - Added daily reset functionality");
+        } catch (Exception e) {
+            Log.e(TAG, "Error in migration from V2 to V3: " + e.getMessage(), e);
             throw e;
         }
     }

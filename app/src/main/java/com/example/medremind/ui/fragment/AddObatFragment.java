@@ -207,6 +207,13 @@ public class AddObatFragment extends Fragment {
             isValid = false;
         }
 
+
+        // Validate radio groups
+        if (rgJenisObat.getCheckedRadioButtonId() == -1) {
+            Toast.makeText(requireContext(), "Pilih jenis obat", Toast.LENGTH_SHORT).show();
+            isValid = false;
+        }
+
         // Validate jumlah
         if (TextUtils.isEmpty(etJumlah.getText())) {
             etJumlah.setError("Jumlah wajib diisi");
@@ -217,7 +224,7 @@ public class AddObatFragment extends Fragment {
                 if (jumlah <= 0) {
                     etJumlah.setError("Jumlah harus lebih dari 0");
                     isValid = false;
-                } else if (jumlah > 1000) {
+                } else if (jumlah > 10000) {
                     etJumlah.setError("Jumlah terlalu besar (maksimal 1000)");
                     isValid = false;
                 }
@@ -225,12 +232,6 @@ public class AddObatFragment extends Fragment {
                 etJumlah.setError("Jumlah harus berupa angka");
                 isValid = false;
             }
-        }
-
-        // Validate radio groups
-        if (rgJenisObat.getCheckedRadioButtonId() == -1) {
-            Toast.makeText(requireContext(), "Pilih jenis obat", Toast.LENGTH_SHORT).show();
-            isValid = false;
         }
 
         if (rgTipeJadwal.getCheckedRadioButtonId() == -1) {

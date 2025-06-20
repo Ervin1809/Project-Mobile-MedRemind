@@ -82,6 +82,252 @@ public class JadwalHelper {
         }
     }
 
+    // 🔑 =============== DAILY RESET FUNCTIONALITY ===============
+
+    /**
+     * Get current date in YYYY-MM-DD format
+     */
+    private String getCurrentDate() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return dateFormat.format(new Date());
+    }
+
+    /**
+     * Get current time in HH:mm format
+     */
+    private String getCurrentTime() {
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return timeFormat.format(new Date());
+    }
+
+    /**
+     * Check dan perform daily reset jika perlu
+     * Call method ini setiap kali app dibuka
+     */
+    public void checkAndPerformDailyReset() {
+        ensureDatabaseOpen();
+
+        try {
+            String today = getCurrentDate();
+
+            // Check if reset sudah dilakukan hari ini
+            if (isResetAlreadyDoneToday(today)) {
+                Log.d(TAG, "Daily reset already performed today: " + today);
+                return;
+            }
+
+            // Perform reset
+            performDailyReset(today);
+
+            Log.d(TAG, "Daily reset completed for: " + today);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error in daily reset: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Check apakah reset sudah dilakukan hari ini
+     */
+    private boolean isResetAlreadyDoneToday(String today) {
+        Cursor cursor = null;
+        try {
+            String query = "SELECT COUNT(*) FROM " + DbHelper.TABLE_JADWAL +
+                    " WHERE " + DbHelper.KEY_LAST_RESET_DATE + " = ?";
+            cursor = database.rawQuery(query, new String[]{today});
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int count = cursor.getInt(0);
+                return count > 0; // Jika ada yang sudah direset hari ini
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking reset status: " + e.getMessage(), e);
+            return false;
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+    }
+
+    /**
+     * Perform daily reset - clear semua status dan update last_reset_date
+     */
+    private void performDailyReset(String today) {
+        try {
+            // Reset semua status ke BELUM_DIMINUM dan update last_reset_date
+            ContentValues values = new ContentValues();
+            values.put(DbHelper.KEY_STATUS, Jadwal.STATUS_BELUM_DIMINUM); // Reset ke 0
+            values.put(DbHelper.KEY_LAST_RESET_DATE, today);
+            values.putNull(DbHelper.KEY_JADWAL_TANGGAL_DIMINUM); // Clear tanggal diminum
+            values.putNull(DbHelper.KEY_JADWAL_CATATAN); // Clear catatan (optional)
+
+            int updatedRows = database.update(DbHelper.TABLE_JADWAL, values, null, null);
+
+            Log.d(TAG, "Daily reset: cleared status for " + updatedRows + " jadwal records");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error performing daily reset: " + e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Auto-mark jadwal sebagai TERLEWAT jika sudah lewat 2 jam
+     */
+    public void autoMarkTerlewatJadwal() {
+        ensureDatabaseOpen();
+
+        try {
+            String currentTime = getCurrentTime(); // Format: HH:mm
+            String currentDate = getCurrentDate();
+
+            // Query jadwal yang belum diminum dan waktunya sudah lewat 2+ jam
+            String query = "SELECT " + DbHelper.KEY_JADWAL_ID + ", " + DbHelper.KEY_WAKTU +
+                    " FROM " + DbHelper.TABLE_JADWAL + " j " +
+                    "INNER JOIN " + DbHelper.TABLE_OBAT + " o ON j." + DbHelper.KEY_OBAT_ID_FK +
+                    " = o." + DbHelper.KEY_OBAT_ID +
+                    " WHERE j." + DbHelper.KEY_STATUS + " = ? " +
+                    "AND o." + DbHelper.KEY_OBAT_IS_AKTIF + " = 1 " +
+                    "AND (j." + DbHelper.KEY_LAST_RESET_DATE + " = ? OR j." + DbHelper.KEY_LAST_RESET_DATE + " IS NULL)";
+
+            Cursor cursor = database.rawQuery(query, new String[]{
+                    String.valueOf(Jadwal.STATUS_BELUM_DIMINUM), currentDate
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    int jadwalId = cursor.getInt(0);
+                    String waktuJadwal = cursor.getString(1);
+
+                    if (shouldAutoMarkTerlewat(waktuJadwal, currentTime)) {
+                        updateJadwalStatus(jadwalId, Jadwal.STATUS_TERLEWAT, "Auto terlewat - lewat 2 jam");
+                        Log.d(TAG, "Auto marked jadwal " + jadwalId + " as TERLEWAT");
+                    }
+
+                } while (cursor.moveToNext());
+            }
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error auto marking terlewat: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Check if jadwal should be auto-marked as terlewat
+     */
+    private boolean shouldAutoMarkTerlewat(String waktuJadwal, String currentTime) {
+        try {
+            // Parse times
+            String[] jadwalParts = waktuJadwal.split(":");
+            String[] currentParts = currentTime.split(":");
+
+            int jadwalHour = Integer.parseInt(jadwalParts[0]);
+            int jadwalMinute = Integer.parseInt(jadwalParts[1]);
+            int currentHour = Integer.parseInt(currentParts[0]);
+            int currentMinute = Integer.parseInt(currentParts[1]);
+
+            // Convert to minutes since midnight
+            int jadwalMinutes = jadwalHour * 60 + jadwalMinute;
+            int currentMinutes = currentHour * 60 + currentMinute;
+
+            // Check if current time is 2+ hours (120 minutes) after jadwal time
+            int diffMinutes = currentMinutes - jadwalMinutes;
+
+            // Handle day transition (currentTime < jadwalTime bisa berarti besok)
+            if (diffMinutes < 0) {
+                diffMinutes += 24 * 60; // Add 24 hours in minutes
+            }
+
+            return diffMinutes >= 120; // 2 hours = 120 minutes
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking auto terlewat: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Get status untuk jadwal hari ini dengan daily reset logic
+     */
+    @Nullable
+    public String getJadwalStatusForToday(int jadwalId, String waktuJadwal) {
+        ensureDatabaseOpen();
+
+        // Perform daily reset check
+        checkAndPerformDailyReset();
+
+        // Auto-mark terlewat jika perlu
+        autoMarkTerlewatJadwal();
+
+        // Get updated jadwal
+        Jadwal jadwal = getJadwalById(jadwalId);
+        if (jadwal == null) {
+            return null;
+        }
+
+        // Return status based on database
+        switch (jadwal.getStatus()) {
+            case Jadwal.STATUS_SUDAH_DIMINUM:
+                return "DONE";
+            case Jadwal.STATUS_TERLEWAT:
+                return "TERLEWAT";
+            case Jadwal.STATUS_BELUM_DIMINUM:
+            default:
+                // Calculate real-time status
+                return calculateRealTimeStatus(waktuJadwal);
+        }
+    }
+
+    /**
+     * Calculate real-time status for belum diminum jadwal
+     */
+    private String calculateRealTimeStatus(String waktuJadwal) {
+        try {
+            Calendar now = Calendar.getInstance();
+            Calendar jadwalTime = Calendar.getInstance();
+
+            // Parse waktu (format HH:mm)
+            String[] timeParts = waktuJadwal.split(":");
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+
+            jadwalTime.set(Calendar.HOUR_OF_DAY, hour);
+            jadwalTime.set(Calendar.MINUTE, minute);
+            jadwalTime.set(Calendar.SECOND, 0);
+
+            long diffMillis = jadwalTime.getTimeInMillis() - now.getTimeInMillis();
+            long diffMinutes = diffMillis / (1000 * 60);
+
+            // Real-time status calculation
+            if (diffMinutes < -15) {
+                return "TERLAMBAT";
+            } else if (diffMinutes <= 15) {
+                return "WAKTUNYA";
+            } else if (diffMinutes < 60) {
+                return diffMinutes + " Menit Lagi";
+            } else if (diffMinutes < 1440) {
+                long diffHours = diffMinutes / 60;
+                return diffHours + " Jam Lagi";
+            } else {
+                return "BESOK";
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating real-time status: " + e.getMessage(), e);
+            return "ERROR";
+        }
+    }
+
+    // 🔑 =============== EXISTING METHODS (UNCHANGED) ===============
+
     /**
      * Menambah jadwal baru
      * @param jadwal Objek jadwal yang akan disimpan

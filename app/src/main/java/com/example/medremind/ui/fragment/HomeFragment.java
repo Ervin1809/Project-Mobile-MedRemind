@@ -20,6 +20,7 @@ import com.example.medremind.R;
 import com.example.medremind.data.helper.ObatHelper;
 import com.example.medremind.data.helper.JadwalHelper;
 import com.example.medremind.data.model.Obat;
+import com.example.medremind.ui.activity.DetailJadwalActivity;
 import com.example.medremind.ui.adapter.ObatAdapter;
 
 import java.util.HashMap;
@@ -83,6 +84,9 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
     private void setupRecyclerView() {
         adapter = new ObatAdapter();
         adapter.setObatClickListener(this);
+
+        // 🔑 Set context ke adapter setelah constructor
+        adapter.setContext(requireContext());
 
         rvObat.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvObat.setAdapter(adapter);
@@ -237,8 +241,8 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
         try {
             Log.d(TAG, "Lihat selengkapnya clicked for: " + obat.getNamaObat());
 
-            // Navigate to jadwal detail
-            navigateToJadwalDetail(obat);
+            // Navigate to DetailObatActivity
+            DetailJadwalActivity.start(requireContext(), obat.getId(), obat.getNamaObat());
 
         } catch (Exception e) {
             Log.e(TAG, "Error handling lihat selengkapnya click: " + e.getMessage(), e);

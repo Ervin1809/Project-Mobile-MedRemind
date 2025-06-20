@@ -103,6 +103,9 @@ public class CursorHelper {
             jadwal.setStatus(getIntValue(cursor, DbHelper.KEY_STATUS, 0));
             jadwal.setCatatan(getStringValue(cursor, DbHelper.KEY_JADWAL_CATATAN, null));
 
+            // 🔑 NEW: Handle last_reset_date
+            jadwal.setLastResetDate(getStringValue(cursor, DbHelper.KEY_LAST_RESET_DATE, null));
+
             // Set timestamp jika ada
             long tanggalDibuat = getLongValue(cursor, DbHelper.KEY_JADWAL_TANGGAL_DIBUAT, 0);
             if (tanggalDibuat > 0) {
