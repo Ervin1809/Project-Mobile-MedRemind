@@ -44,7 +44,7 @@ public class DetailJadwalActivity extends AppCompatActivity {
     private TextView tvJumlahMakan, tvTipeJadwal, tvNamaObat, tvDosisObat;
     private TextView tvAturanMinum, tvSisaObat, tvDailyProgress, tvTutup;
     private TableLayout tableJadwal;
-    private MaterialButton btnSudahMinum, btnLewati;
+    private MaterialButton btnSudahMinum, btnLewati, btnHapusObat;
 
     // Data
     private int obatId;
@@ -98,6 +98,7 @@ public class DetailJadwalActivity extends AppCompatActivity {
         tableJadwal = findViewById(R.id.table_jadwal);
         btnSudahMinum = findViewById(R.id.btn_sudah_minum);
         btnLewati = findViewById(R.id.btn_lewati);
+        btnHapusObat = findViewById(R.id.btn_hapus_obat);
 
         // Initialize database helpers
         obatHelper = new ObatHelper(this);
@@ -140,6 +141,40 @@ public class DetailJadwalActivity extends AppCompatActivity {
 
         btnSudahMinum.setOnClickListener(v -> handleSudahMinumClick());
         btnLewati.setOnClickListener(v -> handleLewatiClick());
+        btnHapusObat.setOnClickListener(v -> showDeleteConfirmDialog());
+    }
+
+    private void showDeleteConfirmDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Hapus Obat")
+                .setMessage("Apakah Anda yakin ingin menghapus obat '" + obatNama + "' secara permanen? Tindakan ini tidak dapat dibatalkan.")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Ya, Hapus", (dialog, which) -> deleteCurrentObat())
+                .setNegativeButton("Batal", null)
+                .show();
+    }
+
+    private void deleteCurrentObat() {
+        executor.execute(() -> {
+            try {
+                obatHelper.open();
+                boolean success = obatHelper.deleteObat(obatId, true); // true for hard delete
+                obatHelper.close();
+
+                runOnUiThread(() -> {
+                    if (success) {
+                        Toast.makeText(DetailJadwalActivity.this, "Obat '" + obatNama + "' berhasil dihapus.", Toast.LENGTH_SHORT).show();
+                        finish(); // Close the activity after deletion
+                    } else {
+                        Toast.makeText(DetailJadwalActivity.this, "Gagal menghapus obat.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error deleting obat: " + e.getMessage(), e);
+                runOnUiThread(() -> Toast.makeText(DetailJadwalActivity.this, "Terjadi error saat menghapus obat.", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
     private void loadObatDetail() {

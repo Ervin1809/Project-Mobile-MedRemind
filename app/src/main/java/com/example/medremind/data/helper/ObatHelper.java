@@ -320,6 +320,30 @@ public class ObatHelper {
     }
 
     /**
+     * Menghapus semua data obat dari database secara permanen.
+     * @return true jika berhasil, false jika gagal
+     */
+    public boolean deleteAllObat() {
+        ensureDatabaseOpen();
+        try {
+            // Hard delete: hapus semua obat dari database
+            int rowsAffected = database.delete(
+                    DbHelper.TABLE_OBAT,
+                    null,  // null akan menghapus semua data
+                    null);
+
+            Log.d(TAG, "Deleted all obat permanently. Rows affected: " + rowsAffected);
+            return true;
+        } catch (SQLException e) {
+            Log.e(TAG, "SQL error deleting all obat permanently: " + e.getMessage(), e);
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected error deleting all obat permanently: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
      * Mengurangi jumlah obat ketika diminum
      * @param obatId ID obat yang dikurangi
      * @return true jika berhasil, false jika gagal atau stok habis
