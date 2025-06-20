@@ -21,6 +21,7 @@ import com.example.medremind.data.helper.ObatHelper;
 import com.example.medremind.data.helper.JadwalHelper;
 import com.example.medremind.data.model.Obat;
 import com.example.medremind.ui.activity.DetailJadwalActivity;
+import com.example.medremind.ui.activity.MainActivity;
 import com.example.medremind.ui.adapter.ObatAdapter;
 
 import java.util.HashMap;
@@ -108,6 +109,12 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
     }
 
     private void loadObatData() {
+        // 🔑 CHECK: Fragment masih attached?
+        if (!isAdded() || getContext() == null) {
+            Log.w(TAG, "Fragment not attached, skipping data load");
+            return;
+        }
+
         // Show loading indicator
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setRefreshing(true);
@@ -130,18 +137,19 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
                     jumlahMakanMap.put(obat.getId(), count);
                 }
 
-                // Update UI on main thread
-                if (getActivity() != null) {
+                // 🔑 CHECK: Fragment masih attached sebelum update UI?
+                if (isAdded() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> updateUI(obatList, jumlahMakanMap));
+                } else {
+                    Log.w(TAG, "Fragment detached during data loading");
                 }
 
             } catch (Exception e) {
                 Log.e(TAG, "Error loading obat data: " + e.getMessage(), e);
 
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        handleLoadError(e);
-                    });
+                // 🔑 SAFE: Only update UI if fragment still attached
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> handleLoadError(e));
                 }
             } finally {
                 // Close database connections
@@ -152,8 +160,8 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
                     Log.e(TAG, "Error closing database: " + e.getMessage(), e);
                 }
 
-                // Hide loading indicator
-                if (getActivity() != null) {
+                // 🔑 SAFE: Hide loading indicator jika fragment masih attached
+                if (isAdded() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (swipeRefreshLayout != null) {
                             swipeRefreshLayout.setRefreshing(false);
@@ -166,6 +174,18 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
 
     private void updateUI(@NonNull List<Obat> obatList, @NonNull Map<Integer, Integer> jumlahMakanMap) {
         try {
+            // 🔑 CHECK: Fragment masih attached?
+            if (!isAdded() || getContext() == null) {
+                Log.w(TAG, "Fragment not attached, skipping UI update");
+                return;
+            }
+
+            // 🔑 CHECK: Views masih valid?
+            if (tvEmpty == null || rvObat == null) {
+                Log.w(TAG, "Views are null, skipping UI update");
+                return;
+            }
+
             if (obatList.isEmpty()) {
                 showEmptyState();
             } else {
@@ -176,44 +196,92 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
 
         } catch (Exception e) {
             Log.e(TAG, "Error updating UI: " + e.getMessage(), e);
-            Toast.makeText(requireContext(), "Error menampilkan data", Toast.LENGTH_SHORT).show();
+
+            // 🔑 SAFE: Only show toast if fragment still attached
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(getContext(), "Error menampilkan data", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     private void showEmptyState() {
-        tvEmpty.setVisibility(View.VISIBLE);
-        rvObat.setVisibility(View.GONE);
+        try {
+            // 🔑 CHECK: Views exist?
+            if (tvEmpty == null || rvObat == null) {
+                Log.w(TAG, "Cannot show empty state - views are null");
+                return;
+            }
 
-        // Set empty message
-        tvEmpty.setText("Belum ada obat yang ditambahkan.\nTambahkan obat baru untuk memulai.");
+            tvEmpty.setVisibility(View.VISIBLE);
+            rvObat.setVisibility(View.GONE);
+
+            // Set empty message
+            tvEmpty.setText("Belum ada obat yang ditambahkan.\nTambahkan obat baru untuk memulai.");
+
+            Log.d(TAG, "Empty state shown");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing empty state: " + e.getMessage(), e);
+        }
     }
 
     private void showObatList(@NonNull List<Obat> obatList, @NonNull Map<Integer, Integer> jumlahMakanMap) {
-        tvEmpty.setVisibility(View.GONE);
-        rvObat.setVisibility(View.VISIBLE);
+        try {
+            // 🔑 CHECK: Views exist?
+            if (tvEmpty == null || rvObat == null || adapter == null) {
+                Log.w(TAG, "Cannot show obat list - views or adapter are null");
+                return;
+            }
 
-        adapter.setObatList(obatList);
-        adapter.setJumlahMakanMap(jumlahMakanMap);
+            tvEmpty.setVisibility(View.GONE);
+            rvObat.setVisibility(View.VISIBLE);
+
+            adapter.setObatList(obatList);
+            adapter.setJumlahMakanMap(jumlahMakanMap);
+
+            Log.d(TAG, "Obat list shown with " + obatList.size() + " items");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing obat list: " + e.getMessage(), e);
+        }
     }
 
     private void handleLoadError(@NonNull Exception e) {
-        Log.e(TAG, "Failed to load obat data: " + e.getMessage(), e);
+        try {
+            Log.e(TAG, "Failed to load obat data: " + e.getMessage(), e);
 
-        Toast.makeText(requireContext(),
-                "Gagal memuat data: " + e.getMessage(),
-                Toast.LENGTH_LONG).show();
+            // 🔑 SAFE: Only show toast if fragment attached
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(getContext(),
+                        "Gagal memuat data: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
 
-        // Show empty state with error message
-        tvEmpty.setVisibility(View.VISIBLE);
-        rvObat.setVisibility(View.GONE);
-        tvEmpty.setText("Error memuat data.\nTarik ke bawah untuk mencoba lagi.");
+            // 🔑 CHECK: Views exist before showing error state?
+            if (tvEmpty != null && rvObat != null) {
+                tvEmpty.setVisibility(View.VISIBLE);
+                rvObat.setVisibility(View.GONE);
+                tvEmpty.setText("Error memuat data.\nTarik ke bawah untuk mencoba lagi.");
+            }
+
+        } catch (Exception ex) {
+            Log.e(TAG, "Error in handleLoadError: " + ex.getMessage(), ex);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        loadObatData();
-        Log.d(TAG, "HomeFragment resumed, loading data");
+
+        // 🔑 CHECK: Fragment attached dan views initialized?
+        if (isAdded() && getContext() != null && tvEmpty != null && rvObat != null) {
+            loadObatData();
+            refreshNotificationAlarms();
+            refreshObatProgress();
+            Log.d(TAG, "HomeFragment resumed, loading data and refreshing notifications");
+        } else {
+            Log.w(TAG, "HomeFragment resumed but not ready for data loading");
+        }
     }
 
     @Override
@@ -247,6 +315,38 @@ public class HomeFragment extends Fragment implements ObatAdapter.ObatClickListe
         } catch (Exception e) {
             Log.e(TAG, "Error handling lihat selengkapnya click: " + e.getMessage(), e);
             Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void refreshNotificationAlarms() {
+        try {
+            // 🔑 CHECK: Fragment masih attached?
+            if (!isAdded() || getActivity() == null) {
+                Log.w(TAG, "Fragment not attached, skipping notification refresh");
+                return;
+            }
+
+            if (getActivity() instanceof MainActivity) {
+                MainActivity mainActivity = (MainActivity) getActivity();
+                if (mainActivity.getAlarmScheduler() != null) {
+                    mainActivity.getAlarmScheduler().scheduleAllMedicationReminders();
+                    Log.d(TAG, "Notification alarms refreshed");
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error refreshing notification alarms: " + e.getMessage(), e);
+        }
+    }
+
+    private void refreshObatProgress() {
+        try {
+            if (adapter != null && adapter.getClass().getMethod("refreshDailyProgress") != null) {
+                adapter.refreshDailyProgress();
+                Log.d(TAG, "Obat progress refreshed");
+            }
+        } catch (NoSuchMethodException e) {
+            Log.d(TAG, "refreshDailyProgress method not found in adapter");
+        } catch (Exception e) {
+            Log.e(TAG, "Error refreshing obat progress: " + e.getMessage(), e);
         }
     }
 
