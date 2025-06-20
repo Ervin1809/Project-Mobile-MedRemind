@@ -75,7 +75,13 @@ public class Obat {
 
     @NonNull
     public String getJenisObat() {
-        return jenisObat != null ? jenisObat : "";
+        String dosis = "";
+        if (jenisObat.equalsIgnoreCase("Tablet") || jenisObat.equalsIgnoreCase("Kapsul")){
+            dosis = jenisObat;
+        }else {
+            dosis = " mg";
+        }
+        return dosis;
     }
 
     public void setJenisObat(@NonNull String jenisObat) {
@@ -88,7 +94,19 @@ public class Obat {
 
     @NonNull
     public String getDosisObat() {
-        return dosisObat != null ? dosisObat : "";
+        String[] parts = dosisObat.split(" ");
+        String dosis = "";
+        if (jenisObat.equalsIgnoreCase("Tablet") || jenisObat.equalsIgnoreCase("Kapsul")){
+            dosis = parts[0] + " " + jenisObat;
+        }else {
+            dosis = parts[0] + " mg";
+        }
+        return dosis;
+    }
+    public int getDosisObatInt(){
+        String[] parts = dosisObat.split(" ");
+        int dosis = Integer.parseInt(parts[0]);
+        return dosis;
     }
 
     public void setDosisObat(@NonNull String dosisObat) {

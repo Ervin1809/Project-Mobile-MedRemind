@@ -325,7 +325,8 @@ public class ObatHelper {
      * @return true jika berhasil, false jika gagal atau stok habis
      */
     public boolean kurangiJumlahObat(long obatId) {
-        return kurangiJumlahObat(obatId, 1);
+        Obat obat = getObatById(obatId);
+        return kurangiJumlahObat(obatId, obat.getDosisObatInt());
     }
 
     /**

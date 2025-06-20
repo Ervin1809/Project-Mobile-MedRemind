@@ -28,6 +28,7 @@ public class Jadwal {
     private Date tanggalDiperbarui;
     private Date tanggalDiminum; // kapan obat diminum (jika sudah)
     private String catatan; // catatan tambahan
+    private String lastResetDate; // 🔑 NEW FIELD - Format: YYYY-MM-DD
     private Map<String, String> tambahan; // untuk menyimpan data tambahan
 
     // Constructor kosong
@@ -175,6 +176,17 @@ public class Jadwal {
         updateTanggalDiperbarui();
     }
 
+    // 🔑 NEW GETTER/SETTER untuk Last Reset Date
+    @Nullable
+    public String getLastResetDate() {
+        return lastResetDate;
+    }
+
+    public void setLastResetDate(@Nullable String lastResetDate) {
+        this.lastResetDate = lastResetDate;
+        updateTanggalDiperbarui();
+    }
+
     // Methods untuk tambahan data
     public void setTambahan(@NonNull String key, @Nullable String value) {
         if (tambahan == null) {
@@ -254,6 +266,30 @@ public class Jadwal {
         }
     }
 
+    // 🔑 NEW METHOD untuk check apakah perlu reset
+    public boolean needsDailyReset() {
+        if (lastResetDate == null) {
+            return true; // Belum pernah reset
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String today = dateFormat.format(new Date());
+
+        return !today.equals(lastResetDate);
+    }
+
+    // 🔑 NEW METHOD untuk reset status harian
+    public void performDailyReset() {
+        this.status = STATUS_BELUM_DIMINUM;
+        this.tanggalDiminum = null;
+        this.catatan = null; // Optional: clear catatan
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        this.lastResetDate = dateFormat.format(new Date());
+
+        updateTanggalDiperbarui();
+    }
+
     // Untuk debugging
     @Override
     public String toString() {
@@ -264,6 +300,7 @@ public class Jadwal {
                 ", waktu='" + waktu + '\'' +
                 ", status=" + status +
                 ", statusString='" + getStatusString() + '\'' +
+                ", lastResetDate='" + lastResetDate + '\'' + // 🔑 ADDED
                 '}';
     }
 
