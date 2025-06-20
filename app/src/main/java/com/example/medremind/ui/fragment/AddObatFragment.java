@@ -208,6 +208,7 @@ public class AddObatFragment extends Fragment {
         }
 
 
+
         // Validate radio groups
         if (rgJenisObat.getCheckedRadioButtonId() == -1) {
             Toast.makeText(requireContext(), "Pilih jenis obat", Toast.LENGTH_SHORT).show();
