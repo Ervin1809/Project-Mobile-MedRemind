@@ -5,7 +5,7 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:orientation="vertical"
@@ -35,7 +35,7 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1"
-                android:background="#E0E0E0"/>
+                android:background="@color/gray"/>
         </LinearLayout>
 
         <!-- Input Jam -->

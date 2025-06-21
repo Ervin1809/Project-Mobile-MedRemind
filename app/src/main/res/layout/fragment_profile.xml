@@ -7,6 +7,7 @@
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
     android:paddingBottom="16dp"
+    android:background="@color/white"
     tools:context=".ui.fragment.ProfileFragment">
 
     <TextView
@@ -29,7 +30,7 @@
         android:layout_marginTop="24dp"
         android:hint="Nama Pengguna"
         app:boxStrokeColor="@color/green"
-        app:hintTextColor="@color/black"
+        app:hintTextColor="@color/green"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_profile_title">
@@ -111,8 +112,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Hapus Semua Data Obat"
-        android:backgroundTint="#F44336"
-        android:textColor="@android:color/white"
+        android:backgroundTint="@color/red"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_data_title" />
 
