@@ -74,9 +74,17 @@ public class NotificationReceiver extends BroadcastReceiver {
 
                         Log.d(TAG, "Medication reminder notification shown for: " + obatNama);
 
-                        // Check low stock warning (kurang dari 5 tablet)
-                        if (obat.getJumlahObat() <= 5) {
-                            notificationHelper.showLowStockWarning(obatNama, obat.getJumlahObat());
+                        // Check low stock warning (<=3 tablet atau <=500mg)
+                        String jenis = obat.getJenisObat().toLowerCase();
+                        int jumlah = obat.getJumlahObat();
+                        boolean lowStock = false;
+                        if (jenis.contains("tablet") && jumlah <= 3) {
+                            lowStock = true;
+                        } else if (jenis.contains("mg") && jumlah <= 500) {
+                            lowStock = true;
+                        }
+                        if (lowStock) {
+                            notificationHelper.showLowStockWarning(obatNama, jumlah);
                         }
 
                     } else {

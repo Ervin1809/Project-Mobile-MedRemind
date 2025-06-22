@@ -45,6 +45,7 @@ public class DetailJadwalActivity extends AppCompatActivity {
     private TextView tvAturanMinum, tvSisaObat, tvDailyProgress, tvTutup;
     private TableLayout tableJadwal;
     private MaterialButton btnSudahMinum, btnLewati, btnHapusObat;
+    private TextView tvObatHabisInfo;
 
     // Data
     private int obatId;
@@ -99,6 +100,7 @@ public class DetailJadwalActivity extends AppCompatActivity {
         btnSudahMinum = findViewById(R.id.btn_sudah_minum);
         btnLewati = findViewById(R.id.btn_lewati);
         btnHapusObat = findViewById(R.id.btn_hapus_obat);
+        tvObatHabisInfo = findViewById(R.id.tv_obat_habis_info);
 
         // Initialize database helpers
         obatHelper = new ObatHelper(this);
@@ -567,6 +569,31 @@ public class DetailJadwalActivity extends AppCompatActivity {
     }
 
     private void updateActionButtons() {
+        // Jika stok obat habis, sembunyikan tombol dan tampilkan info
+        if (Obat1 != null && Obat1.getJumlahObat() <= 0) {
+            btnSudahMinum.setVisibility(View.GONE);
+            btnLewati.setVisibility(View.GONE);
+            if (tvObatHabisInfo != null) {
+                tvObatHabisInfo.setVisibility(View.VISIBLE);
+                tvObatHabisInfo.setText("Obat ini sudah habis");
+            }
+            return;
+        }
+        // Peringatan stok menipis
+        boolean isLowStock = false;
+        String satuan = Obat1 != null ? Obat1.getJenisObat().toLowerCase() : "";
+        int jumlah = Obat1 != null ? Obat1.getJumlahObat() : 0;
+        if (satuan.contains("tablet") && jumlah <= 3 && jumlah > 0) {
+            isLowStock = true;
+        } else if (satuan.contains("mg") && jumlah <= 500 && jumlah > 0) {
+            isLowStock = true;
+        }
+        if (isLowStock && tvObatHabisInfo != null) {
+            tvObatHabisInfo.setVisibility(View.VISIBLE);
+            tvObatHabisInfo.setText("Stok obat menipis, segera restock!");
+        } else if (tvObatHabisInfo != null) {
+            tvObatHabisInfo.setVisibility(View.GONE);
+        }
         // Check if ada jadwal yang bisa diubah statusnya hari ini
         boolean hasActionableJadwal = false;
 
@@ -577,12 +604,16 @@ public class DetailJadwalActivity extends AppCompatActivity {
                 break;
             }
         }
-
         btnSudahMinum.setVisibility(hasActionableJadwal ? View.VISIBLE : View.GONE);
         btnLewati.setVisibility(hasActionableJadwal ? View.VISIBLE : View.GONE);
     }
 
     private void handleSudahMinumClick() {
+        // Cek stok obat sebelum minum
+        if (Obat1 == null || Obat1.getJumlahObat() <= 0) {
+            Toast.makeText(this, "Stok obat habis, tidak bisa diminum lagi", Toast.LENGTH_SHORT).show();
+            return;
+        }
         // Find next actionable jadwal
         Jadwal nextJadwal = findNextActionableJadwal();
         if (nextJadwal != null) {
