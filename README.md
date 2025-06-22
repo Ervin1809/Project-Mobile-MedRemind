@@ -100,5 +100,5 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE).
 ---
 
 <p align="center">
-  MedRemind
+  MedRemind - Aplikasi Pengingat Obat
 </p>
