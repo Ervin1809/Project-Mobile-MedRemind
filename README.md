@@ -30,7 +30,6 @@ _Catatan: Aplikasi ini dikembangkan tanpa menggunakan framework tambahan._
 
 - Menambahkan obat baru dengan informasi lengkap
 - Menyimpan data seperti nama obat, deskripsi, dan instruksi penggunaan
-- Mengunggah gambar obat untuk identifikasi visual
 
 ### 2. Atur Dosis, Stok & Refill
 
@@ -81,11 +80,25 @@ _Catatan: Aplikasi ini dikembangkan tanpa menggunakan framework tambahan._
    - Selesaikan pengaturan profil awal
 
 4. **Menambahkan Obat Pertama**
-   - Ketuk tombol "+" untuk menambahkan obat baru
+   - Pilih navigation "addObat" untuk menambahkan obat baru
    - Isi informasi obat yang diperlukan
    - Atur jadwal pengingat
    - Simpan dan aktifkan pengingat
 
+## 👨‍💻 Tim Pengembang
+
+- Frisilia Kiki - H071231003
+- Muhammad Dirga Dian Nugraha - H071231039
+- M. Ervin - H071231050
+- Jevon Ivander Thomas - H071231067
+- Imam Ahmad Mirza - H071231082
+
 ## 📄 Lisensi
 
 Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  MedRemind - Aplikasi Pengingat Obat
+</p>
