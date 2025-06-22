@@ -161,6 +161,17 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tv_obat_habis_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Obat ini sudah habis. Silakan restock untuk melanjutkan jadwal minum obat."
+            android:textColor="@color/red"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:visibility="gone" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_hapus_obat"
             style="@style/Widget.Material3.Button.OutlinedButton"
