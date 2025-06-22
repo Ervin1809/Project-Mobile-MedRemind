@@ -51,7 +51,8 @@
                 android:layout_height="wrap_content"
                 android:text="Paracetamol"
                 android:textSize="34sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/black" />
 
             <TextView
                 android:id="@+id/dosis_obat"
@@ -86,7 +87,8 @@
                 android:layout_height="wrap_content"
                 android:text="Hari Ini : "
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/black" />
 
             <TextView
                 android:id="@+id/daily_progress"

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -14,6 +15,7 @@
         android:text="MedRemind"
         android:textColor="@color/green"
         android:textSize="36sp"
+        android:layout_marginStart="10dp"
         android:textStyle="bold" />
 
     <View
@@ -46,6 +48,7 @@
         android:layout_height="wrap_content"
         android:background="@color/green"
         android:elevation="12dp"
+        android:paddingBottom="0dp"
         app:itemIconTint="@color/bottom_nav_selector"
         app:itemTextColor="@color/bottom_nav_selector"
         app:labelVisibilityMode="labeled"
